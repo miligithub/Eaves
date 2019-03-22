@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/dbTxv"
+        android:text="SoundMeter"
+        android:gravity="left"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/button_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.androidplot.xy.XYPlot
+        android:id="@+id/plot"
+        style="@style/APDefacto"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/plot_width"
+        android:layout_margin="@dimen/button_margin"
+        app:domainTitle="domain"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:lineLabelRotationBottom="-45"
+        app:lineLabels="left|bottom"
+        app:rangeTitle="range"
+        app:title="A Simple XY Plot"
+        app:layout_constraintTop_toBottomOf="@+id/dbTxv"/>
+
+
+    <Button
+        android:id="@+id/playBtn"
+        android:text="Play"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/button_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/plot"/>
+
+    <Button
+        android:id="@+id/recBtn"
+        android:text="Record"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="@dimen/button_margin"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/playBtn" />
+
+
+
+</android.support.constraint.ConstraintLayout>

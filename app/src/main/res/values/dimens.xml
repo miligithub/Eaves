@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="button_margin">16sp</dimen>
+    <dimen name="plot_height">25dp</dimen>
+    <dimen name="plot_width">150dp</dimen>
+</resources>
