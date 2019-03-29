@@ -31,7 +31,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -74,6 +77,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static String mFileDir = null;
     private static String mCurrentTime = null;
 
+    private static final String mAudioPattern = ".wav";
+    private static int mPlayFileIndex = 0;
+    private static int mPlayFileNum = 0;
+    private static String mPlayFileDir = "/storage/emulated/0/Download/Eaves/Digits";
+    private List<String> mPlayFileList = null;
+
+
     private static String mPlayFileName = "/storage/emulated/0/Download/Eaves/20190305164445712audio.3gp";
     private static String mRecordFileName = null;
 
@@ -92,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mFileDir = mFileDir + "/" + getString(R.string.app_name) + "/";
 
         File mydir = new File(mFileDir);
-        if(!mydir.exists())
+        if (!mydir.exists())
             mydir.mkdirs();
         else
             Log.d(LOG_TAG, mFileDir + " already exists");
@@ -135,9 +145,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
 
-
         mDecibelView = findViewById(R.id.dbTxv);
-
 
 
         //Sensors
@@ -159,6 +167,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // Failure! No magnetometer.
             Log.i(LOG_TAG, "There's no gyroscope sensors!");
         }
+
+
+        // List audio files
+        mPlayFileList = new ArrayList<>();
+        getPlayList();
+
+        mPlayFileNum = mPlayFileList.size();
+        Log.i(LOG_TAG, "Number of Audio Files: " + mPlayFileNum);
     }
 
 
@@ -191,16 +207,64 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void startPlaying() {
-        mPlayer = new MediaPlayer();
-        Log.i(LOG_TAG, "PlayFileName = " + mPlayFileName);
+//        mPlayer = new MediaPlayer();
+//        Log.i(LOG_TAG, "PlayFileName = " + mPlayFileName);
         try {
-            mPlayer.setDataSource(mPlayFileName);
-            mPlayer.setVolume(1.0f, 1.0f);
-            mPlayer.prepare();
-            mPlayer.start();
+            mPlayFileIndex = 0;
+            loopPlay();
+//            mPlayer.setDataSource(mPlayFileName);
+////            mPlayer.setVolume(1.0f, 1.0f);
+//            mPlayer.prepare();
+//            mPlayer.start();
         } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() "+ mPlayFileName +" failed");
+//            Log.e(LOG_TAG, "prepare() " + mPlayFileName + " failed");
+            Log.e(LOG_TAG, "prepare() " +
+                    mPlayFileList.get(mPlayFileIndex) + " failed");
         }
+    }
+
+    private void loopPlay() throws IOException {
+        //            mPlayer.setVolume(1.0f, 1.0f);
+
+        if(mPlayer == null){
+            mPlayer = new MediaPlayer();
+        } else {
+            mPlayer.reset();
+        }
+        String tmpFileName = mPlayFileList.get(mPlayFileIndex);
+        mPlayer.setDataSource(tmpFileName);
+
+//        mRecordFileName = tmpFileName.substring(0, tmpFileName.length() - mAudioPattern.length());
+//                + "motion.txt";
+
+        Log.i(LOG_TAG, "Index" + mPlayFileIndex + ": " + mRecordFileName);
+
+        mPlayer.prepare();
+
+        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                onRecord(mShouldStartRecording);
+                mShouldStartRecording = !mShouldStartRecording;
+
+                mPlayer.stop();
+                mPlayFileIndex++;
+                Log.i(LOG_TAG, "nextPlayFileIndex = " + mPlayFileIndex);
+
+                if (mPlayFileIndex < mPlayFileNum) {
+                    try {
+                        loopPlay();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        mPlayer.start();
+
+        onRecord(mShouldStartRecording);
+        mShouldStartRecording = !mShouldStartRecording;
     }
 
     private void stopPlaying() {
@@ -237,12 +301,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
 
-
-
-
-        handler.postDelayed(new Runnable(){
-            public void run(){
-                mDecibelView.setText("SoundMeter" + String.format("%1$"+25+ "s", soundDb(ampl)) + "dB");
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                mDecibelView.setText("SoundMeter" + String.format("%1$" + 25 + "s", soundDb(ampl)) + "dB");
                 handler.postDelayed(this, delay);
             }
         }, delay);
@@ -347,5 +408,53 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         double amp = getAmplitude();
         mEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
         return mEMA;
+    }
+
+
+    /**
+     * Function to read all mp3 files and store the details in
+     * ArrayList
+     */
+//    public ArrayList<HashMap<String, String>> getPlayList() {
+    private void getPlayList() {
+        Log.i(LOG_TAG, mPlayFileDir);
+        if (mPlayFileDir != null) {
+            File home = new File(mPlayFileDir);
+            File[] listFiles = home.listFiles();
+            if (listFiles != null && listFiles.length > 0) {
+                for (File file : listFiles) {
+                    Log.i(LOG_TAG, file.getAbsolutePath());
+                    if (file.isDirectory()) {
+                        scanDirectory(file);
+                    } else {
+                        addSongToList(file);
+                    }
+                }
+            }
+        }
+//        // return songs list array
+//        return mPlayFileList;
+    }
+
+    private void scanDirectory(File directory) {
+        if (directory != null) {
+            File[] listFiles = directory.listFiles();
+            if (listFiles != null && listFiles.length > 0) {
+                for (File file : listFiles) {
+                    if (file.isDirectory()) {
+                        scanDirectory(file);
+                    } else {
+                        addSongToList(file);
+                    }
+
+                }
+            }
+        }
+    }
+
+    private void addSongToList(File song) {
+        if (song.getName().endsWith(mAudioPattern)) {
+            mPlayFileList.add(song.getAbsolutePath());
+        }
     }
 }
