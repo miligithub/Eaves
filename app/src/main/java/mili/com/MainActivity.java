@@ -77,10 +77,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static String mFileDir = null;
     private static String mCurrentTime = null;
 
+    private static String mClassificationInfo = null;
+
     private static final String mAudioPattern = ".wav";
+    private static final String mAudioExample = "FAC_1A_normalized";
     private static int mPlayFileIndex = 0;
     private static int mPlayFileNum = 0;
-    private static String mPlayFileDir = "/storage/emulated/0/Download/Eaves/Digits";
+    private static String mPlayFileDir = "/storage/emulated/0/Download/Eaves/DigitsNormalized";
     private List<String> mPlayFileList = null;
 
 
@@ -237,6 +240,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //        mRecordFileName = tmpFileName.substring(0, tmpFileName.length() - mAudioPattern.length());
 //                + "motion.txt";
 
+
+        int tmpEnd = tmpFileName.length() - mAudioPattern.length();
+        mClassificationInfo = tmpFileName.substring(tmpEnd-mAudioExample.length(), tmpEnd);
+
         Log.i(LOG_TAG, "Index" + mPlayFileIndex + ": " + mRecordFileName);
 
         mPlayer.prepare();
@@ -373,7 +380,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     mGyroData[i] = sensorEvent.values[i];
                 }
                 try {
-                    mFileWriter.write(System.nanoTime() + "," + mAccData[0] + "," +
+                    mFileWriter.write(mClassificationInfo + "," +
+                            System.nanoTime() + "," +
+                            mAccData[0] + "," +
                             mAccData[1] + "," +
                             mAccData[2] + "," +
                             mGyroData[0] + "," +
