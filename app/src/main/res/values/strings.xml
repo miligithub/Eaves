@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Eaves</string>
+    <string-array name="sourceList">
+        <item>SmallCommands</item>
+        <item>TestCommands</item>
+        <item>ValidateCommands</item>
+        <item>TrainCommands1</item>
+        <item>TrainCommands2</item>
+        <item>TrainCommands3</item>
+        <item>TrainCommands4</item>
+        <item>TrainCommands5</item>
+        <item>TrainCommands6</item>
+        <item>TrainCommands7</item>
+        <item>TrainCommands8</item>
+        <item>TrainCommands9</item>
+    </string-array>
 </resources>

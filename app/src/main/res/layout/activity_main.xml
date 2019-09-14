@@ -7,52 +7,139 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/dbTxv"
-        android:text="SoundMeter"
+        android:id="@+id/textView"
         android:gravity="left"
+        android:text="textView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/button_margin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <com.androidplot.xy.XYPlot
-        android:id="@+id/plot"
-        style="@style/APDefacto"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/plot_width"
-        android:layout_margin="@dimen/button_margin"
-        app:domainTitle="domain"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:lineLabelRotationBottom="-45"
-        app:lineLabels="left|bottom"
-        app:rangeTitle="range"
-        app:title="A Simple XY Plot"
-        app:layout_constraintTop_toBottomOf="@+id/dbTxv"/>
-
-
-    <Button
-        android:id="@+id/playBtn"
-        android:text="Play"
+    <TextView
+        android:id="@+id/sourceTxtV"
+        android:gravity="left"
+        android:text="AudioSource"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/button_margin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/plot"/>
+        app:layout_constraintTop_toBottomOf="@id/textView"
+        />
+
+    <ScrollView
+        android:id="@+id/sourceRadioScroll"
+        app:layout_constraintTop_toBottomOf="@id/sourceTxtV"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_width="300dp"
+        android:layout_height="150dp">
+        <LinearLayout
+            android:id="@+id/sourceRadioList"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+        </LinearLayout>
+
+        <!--<RadioGroup-->
+            <!--android:id="@+id/sourceRadio"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--&gt;-->
+            <!--&lt;!&ndash;<RadioButton android:id="@+id/radio_test"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:checked="true"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:onClick="onRadioButtonClicked"/>&ndash;&gt;-->
+            <!--&lt;!&ndash;<RadioButton android:id="@+id/radio_small"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:onClick="onRadioButtonClicked"/>&ndash;&gt;-->
+            <!--&lt;!&ndash;<RadioButton android:id="@+id/radio_full"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:onClick="onRadioButtonClicked"/>&ndash;&gt;-->
+        <!--</RadioGroup>-->
+    </ScrollView>
+
+
+    <TextView
+        android:id="@+id/repeatTxtV"
+        android:gravity="left"
+        android:text="Repetition"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/button_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sourceRadioScroll"
+        />
+    <RadioGroup
+        android:id="@+id/repeatRadio"
+        app:layout_constraintTop_toBottomOf="@id/repeatTxtV"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <RadioButton android:id="@+id/radio_one"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="1"
+            android:onClick="onRepetitionRadioButtonClicked"/>
+        <RadioButton android:id="@+id/radio_five"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5"
+            android:onClick="onRepetitionRadioButtonClicked"/>
+        <RadioButton android:id="@+id/radio_ten"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10"
+            android:onClick="onRepetitionRadioButtonClicked"/>
+    </RadioGroup>
+
+    <!--<com.androidplot.xy.XYPlot-->
+        <!--android:id="@+id/plot"-->
+        <!--style="@style/APDefacto"-->
+        <!--android:layout_width="0dp"-->
+        <!--android:layout_height="@dimen/plot_width"-->
+        <!--android:layout_margin="@dimen/button_margin"-->
+        <!--app:domainTitle="domain"-->
+        <!--app:layout_constraintEnd_toEndOf="parent"-->
+        <!--app:layout_constraintStart_toStartOf="parent"-->
+        <!--app:lineLabelRotationBottom="-45"-->
+        <!--app:lineLabels="left|bottom"-->
+        <!--app:rangeTitle="range"-->
+        <!--app:title="A Simple XY Plot"-->
+        <!--app:layout_constraintTop_toBottomOf="@+id/dbTxv"/>-->
+
+
+    <Button
+        android:id="@+id/playBtn"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:layout_margin="@dimen/button_margin"
+        android:text="Play"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/repeatRadio" />
+        <!--app:layout_constraintTop_toBottomOf="@+id/plot"/>-->
 
     <Button
         android:id="@+id/recBtn"
         android:text="Record"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_margin="@dimen/button_margin"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/playBtn" />
+
 
 
 

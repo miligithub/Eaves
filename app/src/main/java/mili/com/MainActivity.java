@@ -9,6 +9,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Environment;
@@ -22,6 +23,11 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +38,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +55,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Button mPlayButton = null;
     private MediaPlayer mPlayer = null;
 
-    private TextView mDecibelView = null;
+    private TextView mTextView = null;
+
+    private LinearLayout mSourceGroup = null;
+    private RadioGroup mRepetitionGroup = null;
 
     // Decibel calculation
     Handler handler = new Handler();
@@ -80,10 +90,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static String mClassificationInfo = null;
 
     private static final String mAudioPattern = ".wav";
-    private static final String mAudioExample = "FAC_1A_normalized";
+    private static final String mAudioExample = "backward_0c540988_0"; // "backward_0c540988_0"; //
     private static int mPlayFileIndex = 0;
     private static int mPlayFileNum = 0;
-    private static String mPlayFileDir = "/storage/emulated/0/Download/Eaves/DigitsNormalized";
+    private static String mPlayFileDir = "";
+    private static List<String> mPlayFileDirName = new ArrayList<>(); //NormalizedTIDIGITSMALL"; //  digitNormalized/digit4";
+    private List<String> mPlaySingleFolderList = null;
     private List<String> mPlayFileList = null;
 
 
@@ -94,6 +106,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] mAccData = new float[3];
     private float[] mGyroData = new float[3];
 
+    // Volume
+    private static AudioManager mAudioManager = null;
+    private static int mMaxVolume = 0;
+    private static int mCurrentVolume = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // getExternalCacheDir().getAbsolutePath();
         mFileDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
         mFileDir = mFileDir + "/" + getString(R.string.app_name) + "/";
+
 
         File mydir = new File(mFileDir);
         if (!mydir.exists())
@@ -148,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
 
-        mDecibelView = findViewById(R.id.dbTxv);
+        mTextView = findViewById(R.id.textView);
 
 
         //Sensors
@@ -172,12 +190,120 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
 
-        // List audio files
+        mSourceGroup = (LinearLayout) findViewById(R.id.sourceRadioList);
+        String[] sourceLists =  getResources().getStringArray(R.array.sourceList);
+        int sourceNum = sourceLists.length;
+        for ( int i=0; i<sourceNum; i++) {
+            CheckBox btn = new CheckBox(this);
+            mSourceGroup.addView(btn);
+            btn.setText(sourceLists[i]);
+            btn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Log.i(LOG_TAG, "Number of Folders: " + mPlayFileDirName.size());
+                    if (isChecked) {
+                        mPlayFileDirName.add(buttonView.getText().toString());
+                    } else {
+                        mPlayFileDirName.remove(buttonView.getText().toString());
+                    }
+                    Log.i(LOG_TAG, "Number of Folders: " + mPlayFileDirName.size());
+
+                    refreshFileList();
+                }
+            });
+        }
+        ((CheckBox)mSourceGroup.getChildAt(0)).setChecked(true);
+
+
+        mRepetitionGroup = (RadioGroup) findViewById(R.id.repeatRadio);
+        refreshFileList();
+
+
+        //Volume
+        // Get the AudioManager instance
+        mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+
+        /*
+           int getStreamVolume (int streamType)
+                        Returns the current volume index for a particular stream.
+
+           Parameters
+                        streamType int : The stream type whose volume index is returned.
+
+           Returns
+                        int : The current volume index for the stream.
+        */
+
+        // Get the music current volume level
+        mCurrentVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        // Get the device music maximum volume level
+        mMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+
+        // Display the media volume level stats on text view
+        mTextView.setText("Media Max Volume : " + mMaxVolume
+                + "\nMedia Current Volume : " + mCurrentVolume);
+    }
+
+    private void refreshFileList() {
+        Log.i(LOG_TAG, "refreshFileList() is running...");
+        if (mPlayFileList!= null) {
+            mPlayFileList.clear();
+        }
         mPlayFileList = new ArrayList<>();
-        getPlayList();
+
+        for (String dir: mPlayFileDirName) {
+            Log.i(LOG_TAG, dir);
+            mPlayFileDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/" + dir + "/";
+            Log.i(LOG_TAG, "Folder of Audio Files: " + mPlayFileDir );
+
+            // List audio files
+            if (mPlaySingleFolderList!= null) {
+                mPlaySingleFolderList.clear();
+            }
+            mPlaySingleFolderList = new ArrayList<>();
+
+            getPlayList();
+
+            Collections.sort(mPlaySingleFolderList);
+
+
+            mPlayFileList.addAll(mPlaySingleFolderList);
+        }
+
+
 
         mPlayFileNum = mPlayFileList.size();
         Log.i(LOG_TAG, "Number of Audio Files: " + mPlayFileNum);
+        //        for (int i = 0; i<mPlayFileNum; i++){
+        //            Log.i(LOG_TAG, mPlaySingleFolderList.get(i));
+        //        }
+    }
+
+
+
+
+    public void onRepetitionRadioButtonClicked(View view) {
+        // Is the button now checked?
+        boolean checked = ((RadioButton) view).isChecked();
+        if (checked) {
+            mCurrentVolume = 16-Integer.valueOf(((RadioButton) view).getText().toString());
+        }
+
+//        // Check which radio button was clicked
+//        switch (view.getId()) {
+//            case R.id.radio_one:
+//                if (checked) {
+//                    mCurrentVolume = 15;
+//                }
+//                break;
+//            case R.id.radio_ten:
+//                if (checked) {
+//                    mCurrentVolume = 6;
+//                }
+//                break;
+//        }
     }
 
 
@@ -203,38 +329,67 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void onPlay(boolean shouldStart) {
         if (shouldStart) {
+
+            for (int i = 0; i < mSourceGroup.getChildCount(); i++) {
+                mSourceGroup.getChildAt(i).setEnabled(false);
+            }
             startPlaying();
         } else {
+
+            for (int i = 0; i < mSourceGroup.getChildCount(); i++) {
+                mSourceGroup.getChildAt(i).setEnabled(true);
+            }
             stopPlaying();
         }
     }
 
     private void startPlaying() {
-//        mPlayer = new MediaPlayer();
-//        Log.i(LOG_TAG, "PlayFileName = " + mPlayFileName);
+
         try {
             mPlayFileIndex = 0;
-            loopPlay();
-//            mPlayer.setDataSource(mPlayFileName);
-////            mPlayer.setVolume(1.0f, 1.0f);
-//            mPlayer.prepare();
-//            mPlayer.start();
+//            mCurrentVolume = 15; //15;
+            loopPlay(mCurrentVolume);
         } catch (IOException e) {
-//            Log.e(LOG_TAG, "prepare() " + mPlayFileName + " failed");
             Log.e(LOG_TAG, "prepare() " +
-                    mPlayFileList.get(mPlayFileIndex) + " failed");
+                    mPlaySingleFolderList.get(mPlayFileIndex) + " failed");
         }
+
     }
 
-    private void loopPlay() throws IOException {
-        //            mPlayer.setVolume(1.0f, 1.0f);
 
-        if(mPlayer == null){
+////        mPlayer = new MediaPlayer();
+////        Log.i(LOG_TAG, "PlayFileName = " + mPlayFileName);
+//        try {
+//            mPlayFileIndex = 0;
+//            loopPlay();
+////            mPlayer.setDataSource(mPlayFileName);
+//////            mPlayer.setVolume(1.0f, 1.0f);
+////            mPlayer.prepare();
+////            mPlayer.start();
+//        } catch (IOException e) {
+////            Log.e(LOG_TAG, "prepare() " + mPlayFileName + " failed");
+//            Log.e(LOG_TAG, "prepare() " +
+//                    mPlaySingleFolderList.get(mPlayFileIndex) + " failed");
+//        }
+
+
+    private void loopPlay(final int volume) throws IOException {
+        if (volume > mMaxVolume) {
+            mPlayButton.callOnClick();
+            return;
+        }
+
+        //TODO
+        //mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+        mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, mMaxVolume, 0);
+
+
+        if (mPlayer == null) {
             mPlayer = new MediaPlayer();
         } else {
             mPlayer.reset();
         }
-        String tmpFileName = mPlayFileList.get(mPlayFileIndex);
+        String tmpFileName = mPlaySingleFolderList.get(mPlayFileIndex);
         mPlayer.setDataSource(tmpFileName);
 
 //        mRecordFileName = tmpFileName.substring(0, tmpFileName.length() - mAudioPattern.length());
@@ -242,7 +397,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
         int tmpEnd = tmpFileName.length() - mAudioPattern.length();
-        mClassificationInfo = tmpFileName.substring(tmpEnd-mAudioExample.length(), tmpEnd);
+        mClassificationInfo = tmpFileName.substring(tmpEnd - mAudioExample.length(), tmpEnd);
 
         Log.i(LOG_TAG, "Index" + mPlayFileIndex + ": " + mRecordFileName);
 
@@ -259,11 +414,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Log.i(LOG_TAG, "nextPlayFileIndex = " + mPlayFileIndex);
 
                 if (mPlayFileIndex < mPlayFileNum) {
-                    try {
-                        loopPlay();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    // nothing, loop to next file;
+                } else {
+                    mPlayFileIndex = 0; // restart to first file;
+                    mCurrentVolume = mCurrentVolume + 1; // increase volume;
+                }
+                try {
+                    loopPlay(mCurrentVolume);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -307,21 +466,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             e.printStackTrace();
         }
 
-
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                mDecibelView.setText("SoundMeter" + String.format("%1$" + 25 + "s", soundDb(ampl)) + "dB");
-                handler.postDelayed(this, delay);
-            }
-        }, delay);
+        //TODO
+//        handler.postDelayed(new Runnable() {
+//            public void run() {
+//                mTextView.setText("SoundMeter" + String.format("%1$" + 25 + "s", soundDb(ampl)) + "dB");
+//                handler.postDelayed(this, delay);
+//            }
+//        }, delay);
 
     }
 
     private void stopRecording() {
         mPlayFileName = mRecordFileName + "audio.3gp";
 
-        mDecibelView.setText("SoundMeter");
-        handler.removeCallbacksAndMessages(null);
+        //TODO
+//        mTextView.setText("SoundMeter");
+//        handler.removeCallbacksAndMessages(null);
 
         mRecorder.stop();
         mRecorder.release();
@@ -427,12 +587,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //    public ArrayList<HashMap<String, String>> getPlayList() {
     private void getPlayList() {
         Log.i(LOG_TAG, mPlayFileDir);
+
         if (mPlayFileDir != null) {
             File home = new File(mPlayFileDir);
             File[] listFiles = home.listFiles();
             if (listFiles != null && listFiles.length > 0) {
                 for (File file : listFiles) {
-                    Log.i(LOG_TAG, file.getAbsolutePath());
+//                    Log.i(LOG_TAG, file.getAbsolutePath());
                     if (file.isDirectory()) {
                         scanDirectory(file);
                     } else {
@@ -442,7 +603,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }
 //        // return songs list array
-//        return mPlayFileList;
+//        return mPlaySingleFolderList;
     }
 
     private void scanDirectory(File directory) {
@@ -463,7 +624,35 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void addSongToList(File song) {
         if (song.getName().endsWith(mAudioPattern)) {
-            mPlayFileList.add(song.getAbsolutePath());
+            mPlaySingleFolderList.add(song.getAbsolutePath());
         }
     }
 }
+
+
+//    public void onRadioButtonClicked(View view) {
+//        // Is the button now checked?
+//        boolean checked = ((RadioButton) view).isChecked();
+//        if (checked) {
+//            mPlayFileDir = ((RadioButton) view).getText().toString();
+//            refreshFileList();
+//        }
+//
+////        // Check which radio button was clicked
+////        switch (view.getId()) {
+////            case R.id.radio_test:
+////                if (checked) {
+////                }
+////                break;
+////            case R.id.radio_small:
+////                if (checked) {
+////                }
+////                break;
+////            case R.id.radio_full:
+////                if (checked) {
+////                }
+////                break;
+////            default:
+////                break;
+////        }
+//    }
