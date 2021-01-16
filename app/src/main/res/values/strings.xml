@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Eaves</string>
     <string-array name="sourceList">
+        <item>DefaultPlayFiles</item>
         <item>SmallCommands</item>
         <item>TestCommands</item>
         <item>ValidateCommands</item>
