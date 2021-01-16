@@ -32,6 +32,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jakewharton.processphoenix.ProcessPhoenix;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -350,8 +352,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //            mCurrentVolume = 15; //15;
             loopPlay(mCurrentVolume);
         } catch (IOException e) {
+            e.printStackTrace();
             Log.e(LOG_TAG, "prepare() " +
-                    mPlaySingleFolderList.get(mPlayFileIndex) + " failed");
+                    mPlayFileList.get(mPlayFileIndex) + " failed");
         }
 
     }
@@ -374,6 +377,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
     private void loopPlay(final int volume) throws IOException {
+        if (mPlayFileList.isEmpty()) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(),"The Audio Source Folder Does Not Exist",Toast.LENGTH_LONG).show();
+                }
+            });
+            return;
+        }
         if (volume > mMaxVolume) {
             mPlayButton.callOnClick();
             return;
@@ -389,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } else {
             mPlayer.reset();
         }
-        String tmpFileName = mPlaySingleFolderList.get(mPlayFileIndex);
+        String tmpFileName = mPlayFileList.get(mPlayFileIndex);
         mPlayer.setDataSource(tmpFileName);
 
 //        mRecordFileName = tmpFileName.substring(0, tmpFileName.length() - mAudioPattern.length());
@@ -438,6 +450,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mPlayer.release();
             mPlayer = null;
         }
+
+//        ProcessPhoenix.triggerRebirth(getBaseContext());
     }
 
     private void startRecording() {
