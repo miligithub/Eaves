@@ -375,10 +375,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void onRecord(boolean shouldStart) {
         if (shouldStart) {
-            mPlayButton.setEnabled(false);
+            // mPlayButton.setEnabled(false);
             startRecording();
         } else {
-            mPlayButton.setEnabled(true);
+            // mPlayButton.setEnabled(true);
             stopRecording();
         }
     }
@@ -631,7 +631,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
         return mEMA;
     }
-
 
 
     private void getPlayList() {
